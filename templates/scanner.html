@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Event Scanner{% endblock %}
+{% block page_title %}Event Scanner{% endblock %}
+{% block page_sub %}Enter any network event values and get instant AI threat analysis{% endblock %}
+
+{% block head %}
+<style>
+.scan-layout{display:grid;grid-template-columns:420px 1fr;gap:20px}
+.scan-form{background:#0d1220;border:1px solid #1e2d45;border-radius:14px;padding:22px}
+.scan-form h3{font-size:14px;font-weight:700;color:#fff;margin-bottom:16px}
+.fld{margin-bottom:14px}
+.fld label{display:block;font-size:10px;color:#64748b;font-weight:700;
+  text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.fld input{width:100%;background:#111827;border:1px solid #1e2d45;border-radius:8px;
+  padding:10px 12px;color:#e2e8f0;font-size:14px}
+.fld input:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 2px #3b82f620}
+.fld .hint{font-size:10px;color:#334155;margin-top:4px}
+.presets{margin-bottom:18px}
+.presets h4{font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase;margin-bottom:8px}
+.preset-btns{display:flex;gap:6px;flex-wrap:wrap}
+.pb{padding:6px 12px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;border:none}
+.result-box{background:#0d1220;border:1px solid #1e2d45;border-radius:14px;padding:22px;
+  display:flex;flex-direction:column;gap:16px}
+.verdict-big{border-radius:12px;padding:24px;text-align:center}
+.verdict-icon{font-size:52px;margin-bottom:8px}
+.verdict-name{font-size:22px;font-weight:800;margin-bottom:4px}
+.verdict-sev{font-size:14px;font-weight:600;opacity:.8}
+.algo-results{display:flex;flex-direction:column;gap:10px}
+.algo-row{background:#111827;border-radius:10px;padding:14px 16px;
+  display:flex;align-items:center;justify-content:space-between}
+.algo-name{font-size:13px;font-weight:600;color:#e2e8f0}
+.algo-desc{font-size:11px;color:#64748b;margin-top:2px}
+.risk-meter{margin-top:4px}
+.risk-meter-bar{background:#1e2d45;border-radius:999px;height:6px;margin-top:6px;width:100%}
+.risk-meter-fill{height:6px;border-radius:999px;transition:width .6s ease}
+.feature-analysis{background:#111827;border-radius:10px;padding:14px}
+.feat-row{display:flex;align-items:center;justify-content:space-between;
+  padding:5px 0;border-bottom:1px solid #1e2d4533;font-size:12px}
+.feat-row:last-child{border:none}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="scan-layout">
+  <!-- FORM -->
+  <div class="scan-form">
+    <h3>🔬 Enter Network Event Details</h3>
+    <div class="presets">
+      <h4>Quick Presets</h4>
+      <div class="preset-btns">
+        <button class="pb" style="background:#22c55e22;color:#22c55e;border:1px solid #22c55e44" onclick="pre('normal')">✅ Normal</button>
+        <button class="pb" style="background:#f9731622;color:#f97316;border:1px solid #f9731644" onclick="pre('brute')">💥 Brute Force</button>
+        <button class="pb" style="background:#ef444422;color:#ef4444;border:1px solid #ef444444" onclick="pre('ddos')">🌊 DDoS</button>
+        <button class="pb" style="background:#a855f722;color:#a855f7;border:1px solid #a855f744" onclick="pre('exfil')">📤 Exfil</button>
+        <button class="pb" style="background:#3b82f622;color:#3b82f6;border:1px solid #3b82f644" onclick="pre('scan')">🔍 Port Scan</button>
+        <button class="pb" style="background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44" onclick="pre('insider')">🕵️ Insider</button>
+      </div>
+    </div>
+    <div class="fld"><label>Bytes Sent</label><input type="number" id="f1" value="1500"/>
+      <div class="hint">Normal: 100–5,000 | DDoS: 50,000–200,000 | Exfil: 500,000+</div></div>
+    <div class="fld"><label>Bytes Received</label><input type="number" id="f2" value="3000"/>
+      <div class="hint">Normal: 200–10,000</div></div>
+    <div class="fld"><label>Login Attempts</label><input type="number" id="f3" value="1"/>
+      <div class="hint">Normal: 1–3 | Brute Force: 50–200</div></div>
+    <div class="fld"><label>Requests Per Minute</label><input type="number" id="f4" value="30"/>
+      <div class="hint">Normal: 5–50 | DDoS: 5,000–20,000</div></div>
+    <div class="fld"><label>Session Duration (seconds)</label><input type="number" id="f5" value="1.5" step="0.1"/>
+      <div class="hint">Normal: 0.5–5s | Exfil: 30–300s</div></div>
+    <div class="fld"><label>CPU Usage %</label><input type="number" id="f6" value="25"/>
+      <div class="hint">Normal: 5–40% | DDoS: 85–100%</div></div>
+    <button onclick="runScan()" style="width:100%;background:#2563eb;color:#fff;border:none;
+      border-radius:10px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px">
+      🔍 Analyze This Event
+    </button>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="result-box">
+    <div id="placeholder" style="text-align:center;padding:60px 20px;color:#334155">
+      <div style="font-size:48px;margin-bottom:14px">🔬</div>
+      <div style="font-size:16px;font-weight:600;color:#64748b">Enter values and click Analyze</div>
+      <div style="font-size:13px;color:#334155;margin-top:8px">AI will classify the event using 3 algorithms</div>
+    </div>
+    <div id="results" style="display:none">
+      <div class="verdict-big" id="vBig">
+        <div class="verdict-icon" id="vIcon">✅</div>
+        <div class="verdict-name" id="vName">Normal Traffic</div>
+        <div class="verdict-sev" id="vSev">Severity: None</div>
+      </div>
+      <div class="risk-meter">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#64748b;margin-bottom:4px">
+          <span>Risk Score</span><span id="riskPct">0%</span>
+        </div>
+        <div class="risk-meter-bar"><div class="risk-meter-fill" id="riskFill"></div></div>
+      </div>
+      <div class="algo-results">
+        <div class="algo-row">
+          <div><div class="algo-name">🌲 Isolation Forest</div>
+            <div class="algo-desc">Unsupervised anomaly detection</div></div>
+          <div id="rIF" style="font-weight:700;font-size:13px"></div>
+        </div>
+        <div class="algo-row">
+          <div><div class="algo-name">🧠 Random Forest</div>
+            <div class="algo-desc">Multi-class attack classifier</div></div>
+          <div id="rRF" style="font-weight:700;font-size:13px"></div>
+        </div>
+        <div class="algo-row">
+          <div><div class="algo-name">🔵 K-Means Clustering</div>
+            <div class="algo-desc">Behavioral cluster assignment</div></div>
+          <div id="rKM" style="font-weight:700;font-size:13px;color:#94a3b8"></div>
+        </div>
+        <div class="algo-row">
+          <div><div class="algo-name">📊 Model Confidence</div>
+            <div class="algo-desc">Random Forest prediction confidence</div></div>
+          <div id="rConf" style="font-weight:700;font-size:13px"></div>
+        </div>
+      </div>
+      <div class="feature-analysis" id="featBox"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const PRESETS={
+  normal:[1500,3000,1,30,1.5,25],
+  brute:[80,80,150,600,0.05,20],
+  ddos:[150000,200,1,10000,0.01,95],
+  exfil:[2000000,300,1,3,120,10],
+  scan:[60,20,1,1000,0.005,8],
+  insider:[500,400,2,15,180,22]
+};
+function pre(t){const p=PRESETS[t];["f1","f2","f3","f4","f5","f6"].forEach((id,i)=>document.getElementById(id).value=p[i]);}
+
+async function runScan(){
+  const payload={
+    bytes_sent:+document.getElementById("f1").value,
+    bytes_received:+document.getElementById("f2").value,
+    login_attempts:+document.getElementById("f3").value,
+    requests_per_min:+document.getElementById("f4").value,
+    duration:+document.getElementById("f5").value,
+    cpu_usage:+document.getElementById("f6").value
+  };
+  const r=await fetch("/api/scan",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+  const res=await r.json();
+  document.getElementById("placeholder").style.display="none";
+  document.getElementById("results").style.display="block";
+  const isOk=res.verdict==="Normal";
+  const col=res.color;
+  const vb=document.getElementById("vBig");
+  vb.style.background=col+"18"; vb.style.border=`1px solid ${col}33`;
+  document.getElementById("vIcon").textContent=res.icon;
+  document.getElementById("vName").style.color=col;
+  document.getElementById("vName").textContent=res.verdict;
+  document.getElementById("vSev").textContent=`Severity: ${res.severity} · ${res.desc}`;
+  document.getElementById("riskPct").textContent=res.risk+"%";
+  const fill=document.getElementById("riskFill");
+  fill.style.width=res.risk+"%"; fill.style.background=col;
+  document.getElementById("rIF").style.color=res.iso==="Anomaly"?"#ef4444":"#22c55e";
+  document.getElementById("rIF").textContent=res.iso;
+  document.getElementById("rRF").style.color=col;
+  document.getElementById("rRF").textContent=res.rf;
+  document.getElementById("rKM").textContent=res.kmeans;
+  const conf=document.getElementById("rConf");
+  conf.style.color=res.confidence>70?"#f97316":"#94a3b8";
+  conf.textContent=res.confidence+"%";
+  document.getElementById("featBox").innerHTML=`
+    <div style="font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Feature Analysis</div>
+    ${[["Bytes Sent",payload.bytes_sent.toLocaleString(),"bytes"],
+       ["Bytes Received",payload.bytes_received.toLocaleString(),"bytes"],
+       ["Login Attempts",payload.login_attempts,"attempts"],
+       ["Requests/min",payload.requests_per_min,"rpm"],
+       ["Duration",payload.duration,"seconds"],
+       ["CPU Usage",payload.cpu_usage,"%"]].map(([n,v,u])=>`
+    <div class="feat-row"><span style="color:#94a3b8">${n}</span>
+      <span style="font-weight:600;color:#e2e8f0">${v} ${u}</span></div>`).join("")}`;
+}
+</script>
+{% endblock %}

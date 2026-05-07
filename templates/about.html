@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}About & Algorithms{% endblock %}
+{% block page_title %}About & AI Algorithms{% endblock %}
+{% block page_sub %}How the AI models work and what technologies power this system{% endblock %}
+
+{% block head %}
+<style>
+.about-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:22px}
+.algo-card{background:#0d1220;border:1px solid #1e2d45;border-radius:14px;padding:22px}
+.algo-icon{font-size:36px;margin-bottom:12px}
+.algo-title{font-size:16px;font-weight:800;color:#fff;margin-bottom:8px}
+.algo-type{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  padding:3px 9px;border-radius:999px;display:inline-block;margin-bottom:12px}
+.algo-desc{font-size:13px;color:#94a3b8;line-height:1.7;margin-bottom:14px}
+.algo-steps{list-style:none;display:flex;flex-direction:column;gap:8px}
+.algo-steps li{font-size:12px;color:#e2e8f0;display:flex;align-items:flex-start;gap:8px}
+.step-num{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px}
+.tech-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.tech-card{background:#0d1220;border:1px solid #1e2d45;border-radius:12px;padding:16px;text-align:center}
+.tech-icon{font-size:28px;margin-bottom:8px}
+.tech-name{font-size:13px;font-weight:700;color:#fff;margin-bottom:4px}
+.tech-role{font-size:11px;color:#64748b}
+.flow{background:#0d1220;border:1px solid #1e2d45;border-radius:14px;padding:22px;margin-bottom:22px}
+.flow-steps{display:flex;align-items:center;gap:0;flex-wrap:wrap;justify-content:center;margin-top:16px}
+.flow-step{background:#111827;border:1px solid #1e2d45;border-radius:10px;padding:14px 18px;
+  text-align:center;min-width:120px}
+.flow-arrow{color:#334155;font-size:20px;padding:0 8px}
+.flow-step-num{font-size:10px;color:#3b82f6;font-weight:700;margin-bottom:4px}
+.flow-step-name{font-size:13px;font-weight:700;color:#fff}
+.flow-step-sub{font-size:10px;color:#64748b;margin-top:3px}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ALGO CARDS -->
+<div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:14px">🤖 Machine Learning Algorithms</div>
+<div class="about-grid">
+
+  <div class="algo-card" style="border-color:#1e3a5f">
+    <div class="algo-icon">🌲</div>
+    <div class="algo-title">Isolation Forest</div>
+    <span class="algo-type" style="background:#1e3a5f44;color:#93c5fd;border:1px solid #1e3a5f">Unsupervised</span>
+    <div class="algo-desc">Detects anomalies without needing labeled data. Builds random decision trees and measures how easy it is to isolate each data point. Anomalies are isolated faster.</div>
+    <ul class="algo-steps">
+      <li><span class="step-num" style="background:#1e3a5f;color:#93c5fd">1</span>Randomly selects a feature and split value</li>
+      <li><span class="step-num" style="background:#1e3a5f;color:#93c5fd">2</span>Builds 100 isolation trees on the data</li>
+      <li><span class="step-num" style="background:#1e3a5f;color:#93c5fd">3</span>Counts how many splits needed to isolate a point</li>
+      <li><span class="step-num" style="background:#1e3a5f;color:#93c5fd">4</span>Few splits = anomaly. Many splits = normal</li>
+    </ul>
+  </div>
+
+  <div class="algo-card" style="border-color:#312e81">
+    <div class="algo-icon">🧠</div>
+    <div class="algo-title">Random Forest</div>
+    <span class="algo-type" style="background:#312e8144;color:#a5b4fc;border:1px solid #312e81">Supervised</span>
+    <div class="algo-desc">100 decision trees each vote on the attack type. The majority vote wins. Trained on labeled examples of each attack type — gives exact classification.</div>
+    <ul class="algo-steps">
+      <li><span class="step-num" style="background:#312e81;color:#a5b4fc">1</span>Trained on 1,000 labeled cloud log events</li>
+      <li><span class="step-num" style="background:#312e81;color:#a5b4fc">2</span>Each tree learns different feature combinations</li>
+      <li><span class="step-num" style="background:#312e81;color:#a5b4fc">3</span>All 100 trees vote on attack type</li>
+      <li><span class="step-num" style="background:#312e81;color:#a5b4fc">4</span>Majority vote = final classification</li>
+    </ul>
+  </div>
+
+  <div class="algo-card" style="border-color:#14532d">
+    <div class="algo-icon">🔵</div>
+    <div class="algo-title">K-Means Clustering</div>
+    <span class="algo-type" style="background:#14532d44;color:#86efac;border:1px solid #14532d">Unsupervised</span>
+    <div class="algo-desc">Groups all traffic into 6 behavioral clusters. Each cluster represents a type of network behavior. Events that don't fit any known cluster pattern are flagged.</div>
+    <ul class="algo-steps">
+      <li><span class="step-num" style="background:#14532d;color:#86efac">1</span>Places 6 random cluster centers in feature space</li>
+      <li><span class="step-num" style="background:#14532d;color:#86efac">2</span>Assigns each event to nearest cluster center</li>
+      <li><span class="step-num" style="background:#14532d;color:#86efac">3</span>Moves centers to mean of their assigned events</li>
+      <li><span class="step-num" style="background:#14532d;color:#86efac">4</span>Repeats until clusters stabilize</li>
+    </ul>
+  </div>
+</div>
+
+<!-- DETECTION FLOW -->
+<div class="flow">
+  <div class="card-hdr">⚙️ How Detection Works — Event Processing Pipeline</div>
+  <div class="flow-steps">
+    <div class="flow-step"><div class="flow-step-num">STEP 1</div><div class="flow-step-name">☁️ Cloud Event</div><div class="flow-step-sub">Log arrives</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-step-num">STEP 2</div><div class="flow-step-name">📊 Features</div><div class="flow-step-sub">Extract 6 values</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="border-color:#1e3a5f"><div class="flow-step-num" style="color:#3b82f6">STEP 3</div><div class="flow-step-name">🌲 Isolation Forest</div><div class="flow-step-sub">Normal / Anomaly</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="border-color:#312e81"><div class="flow-step-num" style="color:#818cf8">STEP 4</div><div class="flow-step-name">🧠 Random Forest</div><div class="flow-step-sub">Classify attack type</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="border-color:#14532d"><div class="flow-step-num" style="color:#22c55e">STEP 5</div><div class="flow-step-name">🔵 K-Means</div><div class="flow-step-sub">Cluster assignment</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="border-color:#7f1d1d"><div class="flow-step-num" style="color:#ef4444">STEP 6</div><div class="flow-step-name">🚨 Alert</div><div class="flow-step-sub">Severity score</div></div>
+  </div>
+</div>
+
+<!-- TECH STACK -->
+<div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:14px">🛠️ Technology Stack</div>
+<div class="tech-grid">
+  <div class="tech-card"><div class="tech-icon">🐍</div><div class="tech-name">Python</div><div class="tech-role">Backend language</div></div>
+  <div class="tech-card"><div class="tech-icon">🌶️</div><div class="tech-name">Flask</div><div class="tech-role">Web framework</div></div>
+  <div class="tech-card"><div class="tech-icon">🔬</div><div class="tech-name">scikit-learn</div><div class="tech-role">ML algorithms</div></div>
+  <div class="tech-card"><div class="tech-icon">🔢</div><div class="tech-name">NumPy / Pandas</div><div class="tech-role">Data processing</div></div>
+  <div class="tech-card"><div class="tech-icon">📊</div><div class="tech-name">Chart.js</div><div class="tech-role">Live charts</div></div>
+  <div class="tech-card"><div class="tech-icon">☁️</div><div class="tech-name">Cloud Logs</div><div class="tech-role">Simulated AWS-style data</div></div>
+  <div class="tech-card"><div class="tech-icon">🧵</div><div class="tech-name">Threading</div><div class="tech-role">Real-time event generation</div></div>
+  <div class="tech-card"><div class="tech-icon">🎓</div><div class="tech-name">DTI Project</div><div class="tech-role">AI + Cloud Security</div></div>
+</div>
+
+<!-- FEATURES TABLE -->
+<div class="card">
+  <div class="card-hdr">📋 Features Used for Detection</div>
+  <div class="tbl-wrap" style="max-height:none">
+    <table>
+      <thead><tr><th>Feature</th><th>Normal Range</th><th>Attack Indicator</th><th>Most Important For</th></tr></thead>
+      <tbody>
+        <tr><td style="font-weight:600;color:#e2e8f0">bytes_sent</td><td style="color:#22c55e">100 – 5,000</td><td style="color:#ef4444">&gt; 50,000 (DDoS), &gt; 500K (Exfil)</td><td>DDoS, Data Exfiltration</td></tr>
+        <tr><td style="font-weight:600;color:#e2e8f0">bytes_received</td><td style="color:#22c55e">200 – 10,000</td><td style="color:#ef4444">Very low when exfiltrating</td><td>Data Exfiltration</td></tr>
+        <tr><td style="font-weight:600;color:#e2e8f0">login_attempts</td><td style="color:#22c55e">1 – 3</td><td style="color:#ef4444">&gt; 50 indicates brute force</td><td>Brute Force</td></tr>
+        <tr><td style="font-weight:600;color:#e2e8f0">requests_per_min</td><td style="color:#22c55e">5 – 50</td><td style="color:#ef4444">&gt; 5,000 = DDoS or scan</td><td>DDoS, Port Scan</td></tr>
+        <tr><td style="font-weight:600;color:#e2e8f0">duration</td><td style="color:#22c55e">0.5s – 5s</td><td style="color:#ef4444">&lt;0.01s = scan; &gt;60s = insider/exfil</td><td>Port Scan, Insider Threat</td></tr>
+        <tr><td style="font-weight:600;color:#e2e8f0">cpu_usage</td><td style="color:#22c55e">5% – 40%</td><td style="color:#ef4444">&gt; 85% = DDoS impact</td><td>DDoS</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

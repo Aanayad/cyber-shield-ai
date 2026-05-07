@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block title %}Live Dashboard{% endblock %}
+{% block page_title %}Live Dashboard{% endblock %}
+{% block page_sub %}Real-time AI threat detection — updates every 2 seconds{% endblock %}
+
+{% block head %}
+<style>
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.chip{display:inline-block;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:700}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- STATS -->
+<div class="g4" style="margin-bottom:20px">
+  <div class="sc"><div class="sc-ico" style="background:#1e3a5f33;color:#3b82f6">📊</div>
+    <div><div class="sc-lbl">Total Events</div><div class="sc-val" id="sT">0</div></div></div>
+  <div class="sc" style="border-color:#7f1d1d55"><div class="sc-ico" style="background:#7f1d1d33;color:#ef4444">🚨</div>
+    <div><div class="sc-lbl">Threats</div><div class="sc-val" id="sA" style="color:#ef4444">0</div></div></div>
+  <div class="sc" style="border-color:#14532d55"><div class="sc-ico" style="background:#14532d33;color:#22c55e">✅</div>
+    <div><div class="sc-lbl">Normal</div><div class="sc-val" id="sN" style="color:#22c55e">0</div></div></div>
+  <div class="sc" style="border-color:#78350f55"><div class="sc-ico" style="background:#78350f33;color:#f59e0b">⚡</div>
+    <div><div class="sc-lbl">Threat Rate</div><div class="sc-val" id="sP" style="color:#f59e0b">0%</div></div></div>
+</div>
+
+<!-- CHARTS ROW -->
+<div class="g2" style="margin-bottom:14px">
+  <div class="card">
+    <div class="card-hdr">📈 Live Threat Timeline <span class="badge badge-live">LIVE</span></div>
+    <canvas id="lineC" height="150"></canvas>
+  </div>
+  <div class="card">
+    <div class="card-hdr">🎯 Attack Distribution</div>
+    <canvas id="donutC" height="150"></canvas>
+  </div>
+</div>
+
+<!-- ATTACK MINI CARDS -->
+<div class="g3" style="margin-bottom:14px">
+  <div class="card" style="border-color:#f9731644">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:22px">💥</span>
+      <div><div style="font-size:11px;color:#64748b;font-weight:600">BRUTE FORCE</div>
+        <div style="font-size:22px;font-weight:800;color:#f97316" id="cBF">0</div></div>
+    </div>
+  </div>
+  <div class="card" style="border-color:#ef444444">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:22px">🌊</span>
+      <div><div style="font-size:11px;color:#64748b;font-weight:600">DDOS</div>
+        <div style="font-size:22px;font-weight:800;color:#ef4444" id="cDD">0</div></div>
+    </div>
+  </div>
+  <div class="card" style="border-color:#a855f744">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:22px">📤</span>
+      <div><div style="font-size:11px;color:#64748b;font-weight:600">DATA EXFILTRATION</div>
+        <div style="font-size:22px;font-weight:800;color:#a855f7" id="cDE">0</div></div>
+    </div>
+  </div>
+  <div class="card" style="border-color:#3b82f644">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:22px">🔍</span>
+      <div><div style="font-size:11px;color:#64748b;font-weight:600">PORT SCAN</div>
+        <div style="font-size:22px;font-weight:800;color:#3b82f6" id="cPS">0</div></div>
+    </div>
+  </div>
+  <div class="card" style="border-color:#f59e0b44">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:22px">🕵️</span>
+      <div><div style="font-size:11px;color:#64748b;font-weight:600">INSIDER THREAT</div>
+        <div style="font-size:22px;font-weight:800;color:#f59e0b" id="cIT">0</div></div>
+    </div>
+  </div>
+  <div class="card" style="border-color:#22c55e44">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:22px">📡</span>
+      <div><div style="font-size:11px;color:#64748b;font-weight:600">EVENTS/SEC</div>
+        <div style="font-size:22px;font-weight:800;color:#22c55e">~0.8</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- EVENT LOG -->
+<div class="card">
+  <div class="card-hdr">
+    📋 Live Event Stream
+    <div style="display:flex;gap:8px">
+      <select id="flt" style="background:#111827;color:#e2e8f0;border:1px solid #1e2d45;border-radius:7px;padding:4px 8px;font-size:11px" onchange="renderLog()">
+        <option value="all">All Events</option>
+        <option value="Normal">Normal Only</option>
+        <option value="Brute Force">Brute Force</option>
+        <option value="DDoS">DDoS</option>
+        <option value="Data Exfiltration">Data Exfiltration</option>
+        <option value="Port Scan">Port Scan</option>
+        <option value="Insider Threat">Insider Threat</option>
+      </select>
+      <span class="badge badge-live">AUTO-REFRESH</span>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Time</th><th>Source IP</th><th>Verdict</th><th>Severity</th>
+        <th>Bytes Sent</th><th>Req/min</th><th>CPU%</th><th>IF</th><th>RF</th><th>Confidence</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const COLORS={"Normal":"#22c55e","Brute Force":"#f97316","DDoS":"#ef4444",
+  "Data Exfiltration":"#a855f7","Port Scan":"#3b82f6","Insider Threat":"#f59e0b"};
+const SEV={"None":"#22c55e","Medium":"#3b82f6","High":"#f97316","Critical":"#ef4444"};
+
+// LINE CHART
+const lC=document.getElementById("lineC").getContext("2d");
+const lineChart=new Chart(lC,{type:"line",data:{labels:[],datasets:[
+  {label:"Req/min",data:[],borderColor:"#3b82f6",backgroundColor:"#3b82f615",fill:true,tension:0.4,pointRadius:2,borderWidth:1.5},
+  {label:"Risk Score",data:[],borderColor:"#ef4444",backgroundColor:"#ef444415",fill:true,tension:0.4,pointRadius:2,borderWidth:1.5,yAxisID:"y2"}
+]},options:{responsive:true,animation:false,
+  plugins:{legend:{labels:{color:"#64748b",font:{size:11}}}},
+  scales:{x:{ticks:{color:"#64748b",maxTicksLimit:8},grid:{color:"#1e2d45"}},
+    y:{ticks:{color:"#64748b"},grid:{color:"#1e2d45"}},
+    y2:{position:"right",ticks:{color:"#64748b"},grid:{display:false}}}}});
+
+// DONUT
+const dC=document.getElementById("donutC").getContext("2d");
+const donut=new Chart(dC,{type:"doughnut",
+  data:{labels:["Normal","Brute Force","DDoS","Data Exfiltration","Port Scan","Insider Threat"],
+    datasets:[{data:[0,0,0,0,0,0],
+      backgroundColor:["#22c55e","#f97316","#ef4444","#a855f7","#3b82f6","#f59e0b"],borderWidth:0}]},
+  options:{responsive:true,cutout:"68%",animation:{duration:300},
+    plugins:{legend:{position:"right",labels:{color:"#64748b",font:{size:11},padding:10,boxWidth:10}}}}});
+
+let allEvs=[], seen=new Set();
+
+function chip(t,c){return `<span class="chip" style="background:${c}22;color:${c};border:1px solid ${c}55">${t}</span>`}
+
+function renderLog(){
+  const f=document.getElementById("flt").value;
+  const show=f==="all"?allEvs:allEvs.filter(e=>e.verdict===f);
+  document.getElementById("tbody").innerHTML=show.slice(0,60).map(e=>`
+    <tr onclick="window.location='/threats'">
+      <td>${e.time}</td>
+      <td style="font-family:monospace;font-size:11px">${e.src_ip}</td>
+      <td>${chip(e.icon+' '+e.verdict, e.color)}</td>
+      <td>${chip(e.severity, SEV[e.severity]||"#64748b")}</td>
+      <td>${e.bytes_sent.toLocaleString()}</td>
+      <td>${e.requests_per_min}</td>
+      <td style="color:${e.cpu_usage>80?'#ef4444':e.cpu_usage>50?'#f97316':'#94a3b8'}">${e.cpu_usage}%</td>
+      <td>${chip(e.iso, e.iso==="Anomaly"?"#ef4444":"#22c55e")}</td>
+      <td>${chip(e.rf.split(" ")[0], COLORS[e.rf]||"#22c55e")}</td>
+      <td style="color:${e.confidence>70?'#f97316':'#94a3b8'}">${e.confidence}%</td>
+    </tr>`).join("");
+}
+
+async function tick(){
+  const [s,evs,tl]=await Promise.all([
+    fetch("/api/stats").then(r=>r.json()),
+    fetch("/api/events?limit=100").then(r=>r.json()),
+    fetch("/api/timeline").then(r=>r.json())
+  ]);
+  // stats
+  document.getElementById("sT").textContent=s.total.toLocaleString();
+  document.getElementById("sA").textContent=s.attacks.toLocaleString();
+  document.getElementById("sN").textContent=s.normal.toLocaleString();
+  document.getElementById("sP").textContent=s.pct+"%";
+  document.getElementById("cBF").textContent=s["Brute Force"]||0;
+  document.getElementById("cDD").textContent=s["DDoS"]||0;
+  document.getElementById("cDE").textContent=s["Data Exfiltration"]||0;
+  document.getElementById("cPS").textContent=s["Port Scan"]||0;
+  document.getElementById("cIT").textContent=s["Insider Threat"]||0;
+  donut.data.datasets[0].data=[s.normal,s["Brute Force"]||0,s["DDoS"]||0,
+    s["Data Exfiltration"]||0,s["Port Scan"]||0,s["Insider Threat"]||0];
+  donut.update("none");
+  // timeline
+  lineChart.data.labels=tl.map(e=>e.time);
+  lineChart.data.datasets[0].data=tl.map(e=>e.reqs);
+  lineChart.data.datasets[1].data=tl.map(e=>e.risk);
+  lineChart.update("none");
+  // events
+  const newE=evs.filter(e=>!seen.has(e.id));
+  newE.forEach(e=>{seen.add(e.id);allEvs.unshift(e)});
+  if(allEvs.length>300)allEvs=allEvs.slice(0,300);
+  renderLog();
+}
+tick(); setInterval(tick,2000);
+</script>
+{% endblock %}

@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% block title %}Threat Explorer{% endblock %}
+{% block page_title %}Threat Explorer{% endblock %}
+{% block page_sub %}Deep-dive into each attack type — how they work and how we detect them{% endblock %}
+
+{% block head %}
+<style>
+.threat-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.tab{padding:9px 16px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;
+  border:1px solid #1e2d45;background:#0d1220;color:#64748b;transition:all .15s}
+.tab:hover{border-color:#3b82f6;color:#e2e8f0}
+.tab.active{color:#fff;border-color:transparent}
+.detail{display:none}.detail.active{display:block}
+.detail-hero{border-radius:14px;padding:28px;margin-bottom:16px;display:flex;align-items:center;gap:24px}
+.detail-icon{font-size:56px}
+.detail-title{font-size:24px;font-weight:800;color:#fff;margin-bottom:6px}
+.detail-desc{font-size:14px;color:#94a3b8;line-height:1.7;max-width:600px}
+.risk-bar{background:#1e2d45;border-radius:999px;height:8px;margin-top:12px;width:300px}
+.risk-fill{height:8px;border-radius:999px;transition:width .6s}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.info-card{background:#111827;border-radius:10px;padding:16px}
+.info-card h4{font-size:12px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.info-card ul{list-style:none;display:flex;flex-direction:column;gap:7px}
+.info-card li{font-size:13px;color:#e2e8f0;display:flex;align-items:flex-start;gap:8px}
+.info-card li::before{content:"›";color:#3b82f6;font-weight:700;flex-shrink:0}
+.recent-evs{background:#0d1220;border:1px solid #1e2d45;border-radius:14px;padding:18px}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- TABS -->
+<div class="threat-tabs" id="tabs">
+  {% for name, info in attack_info.items() %}
+  {% if name != 'Normal' %}
+  <div class="tab {% if loop.first %}active{% endif %}"
+    style="{% if loop.first %}background:{{ info.color }}22;border-color:{{ info.color }}55;color:{{ info.color }}{% endif %}"
+    onclick="showThreat('{{ name }}', '{{ info.color }}', this)">
+    {{ info.icon }} {{ name }}
+  </div>
+  {% endif %}
+  {% endfor %}
+</div>
+
+<!-- DETAIL PANELS -->
+{% for name, info in attack_info.items() %}
+{% if name != 'Normal' %}
+<div class="detail {% if loop.first %}active{% endif %}" id="d_{{ loop.index }}">
+  <div class="detail-hero" style="background:{{ info.color }}15;border:1px solid {{ info.color }}33">
+    <div class="detail-icon">{{ info.icon }}</div>
+    <div>
+      <div class="detail-title">{{ name }}</div>
+      <div class="detail-desc">{{ info.desc }}</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap">
+        <span style="font-size:12px;color:#64748b">Risk Level:</span>
+        <div class="risk-bar"><div class="risk-fill" style="width:{{ info.risk }}%;background:{{ info.color }}"></div></div>
+        <span style="font-size:13px;font-weight:700;color:{{ info.color }}">{{ info.risk }}% — {{ info.severity }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-grid">
+    {% if name == 'Brute Force' %}
+    <div class="info-card">
+      <h4>🔍 How to Identify</h4>
+      <ul>
+        <li>Login attempts &gt; 50 per session</li>
+        <li>Requests per minute &gt; 200</li>
+        <li>Very short duration per request (&lt;0.1s)</li>
+        <li>Status code 401 (Unauthorized) repeated</li>
+        <li>Single IP, multiple usernames</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h4>🤖 How AI Detects It</h4>
+      <ul>
+        <li>Isolation Forest: login_attempts outlier</li>
+        <li>Random Forest: classifies pattern as Brute Force</li>
+        <li>K-Means: falls into high-frequency cluster</li>
+        <li>Feature trigger: login_attempts × requests_per_min</li>
+      </ul>
+    </div>
+    {% elif name == 'DDoS' %}
+    <div class="info-card">
+      <h4>🔍 How to Identify</h4>
+      <ul>
+        <li>Requests per minute &gt; 5,000</li>
+        <li>CPU usage jumps above 85%</li>
+        <li>Bytes sent &gt; 50,000 per event</li>
+        <li>Extremely short duration (0.001s)</li>
+        <li>Traffic from many IPs simultaneously</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h4>🤖 How AI Detects It</h4>
+      <ul>
+        <li>Isolation Forest: cpu_usage + requests anomaly</li>
+        <li>Random Forest: bytes_sent is top feature</li>
+        <li>K-Means: high-volume cluster segregation</li>
+        <li>Feature trigger: requests_per_min × cpu_usage</li>
+      </ul>
+    </div>
+    {% elif name == 'Data Exfiltration' %}
+    <div class="info-card">
+      <h4>🔍 How to Identify</h4>
+      <ul>
+        <li>bytes_sent &gt; 500,000 (massive outbound)</li>
+        <li>bytes_received very low (one-way flow)</li>
+        <li>Long duration (30–300 seconds per session)</li>
+        <li>Low requests per minute (slow, deliberate)</li>
+        <li>Happens at unusual hours</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h4>🤖 How AI Detects It</h4>
+      <ul>
+        <li>Isolation Forest: bytes_sent extreme outlier</li>
+        <li>Random Forest: bytes_sent/received ratio</li>
+        <li>K-Means: unique slow-large-transfer cluster</li>
+        <li>Feature trigger: bytes_sent × duration</li>
+      </ul>
+    </div>
+    {% elif name == 'Port Scan' %}
+    <div class="info-card">
+      <h4>🔍 How to Identify</h4>
+      <ul>
+        <li>Very tiny packets (40–80 bytes sent)</li>
+        <li>Rapid connections (requests_per_min: 500–2000)</li>
+        <li>Near-zero duration per connection</li>
+        <li>Probing many different ports</li>
+        <li>Low CPU usage (lightweight probing)</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h4>🤖 How AI Detects It</h4>
+      <ul>
+        <li>Isolation Forest: tiny bytes + high requests anomaly</li>
+        <li>Random Forest: bytes_sent + duration pattern</li>
+        <li>K-Means: micro-packet cluster</li>
+        <li>Feature trigger: bytes_sent ÷ requests_per_min ratio</li>
+      </ul>
+    </div>
+    {% elif name == 'Insider Threat' %}
+    <div class="info-card">
+      <h4>🔍 How to Identify</h4>
+      <ul>
+        <li>Access at unusual hours (midnight–4am)</li>
+        <li>Long session duration (60–600 seconds)</li>
+        <li>Moderate-high bytes transferred</li>
+        <li>Authorized user, unauthorized behavior</li>
+        <li>Unusual data access patterns</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h4>🤖 How AI Detects It</h4>
+      <ul>
+        <li>Isolation Forest: duration + time-of-day outlier</li>
+        <li>Random Forest: duration × bytes_sent pattern</li>
+        <li>K-Means: falls outside normal user clusters</li>
+        <li>Feature trigger: duration × bytes_sent</li>
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Recent events of this type -->
+  <div class="recent-evs">
+    <div class="card-hdr" style="margin-bottom:12px">📋 Recent {{ name }} Events
+      <span class="badge badge-red" id="cnt_{{ loop.index }}">Loading...</span>
+    </div>
+    <div class="tbl-wrap" style="max-height:220px">
+      <table>
+        <thead><tr><th>Time</th><th>Source IP</th><th>Bytes Sent</th><th>Req/min</th><th>CPU%</th><th>Confidence</th></tr></thead>
+        <tbody id="rt_{{ loop.index }}"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endfor %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const THREAT_MAP = {};
+{% for name, info in attack_info.items() %}{% if name != 'Normal' %}
+THREAT_MAP["{{ name }}"] = { idx: {{ loop.index }}, color: "{{ info.color }}" };
+{% endif %}{% endfor %}
+
+async function loadRecent(name, idx){
+  const evs = await fetch(`/api/events?filter=${encodeURIComponent(name)}&limit=20`).then(r=>r.json());
+  document.getElementById(`cnt_${idx}`).textContent = `${evs.length} recent`;
+  document.getElementById(`rt_${idx}`).innerHTML = evs.map(e=>`
+    <tr><td>${e.time}</td>
+    <td style="font-family:monospace;font-size:11px">${e.src_ip}</td>
+    <td style="color:#f97316">${e.bytes_sent.toLocaleString()}</td>
+    <td>${e.requests_per_min}</td>
+    <td style="color:${e.cpu_usage>80?'#ef4444':'#94a3b8'}">${e.cpu_usage}%</td>
+    <td style="color:${e.confidence>70?'#f97316':'#94a3b8'}">${e.confidence}%</td></tr>`).join("");
+}
+
+function showThreat(name, color, el){
+  document.querySelectorAll(".detail").forEach(d=>d.classList.remove("active"));
+  document.querySelectorAll(".tab").forEach(t=>{
+    t.classList.remove("active");
+    t.style.background=""; t.style.borderColor=""; t.style.color="";
+  });
+  const {idx} = THREAT_MAP[name];
+  document.getElementById(`d_${idx}`).classList.add("active");
+  el.classList.add("active");
+  el.style.background=color+"22"; el.style.borderColor=color+"55"; el.style.color=color;
+  loadRecent(name, idx);
+}
+
+// Load first tab
+const firstName = Object.keys(THREAT_MAP)[0];
+const {idx: firstIdx} = THREAT_MAP[firstName];
+loadRecent(firstName, firstIdx);
+setInterval(()=>{
+  const activeTab=document.querySelector(".tab.active");
+  if(activeTab){
+    const name=activeTab.textContent.trim().replace(/^.\s/,"");
+    const found=Object.keys(THREAT_MAP).find(k=>name.includes(k.split(" ")[0]));
+    if(found) loadRecent(found, THREAT_MAP[found].idx);
+  }
+},5000);
+</script>
+{% endblock %}

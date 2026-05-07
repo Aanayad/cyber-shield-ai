@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block page_title %}Welcome to AI CyberShield{% endblock %}
+{% block page_sub %}AI-Powered Cybersecurity Detection for Cloud Big Data Systems{% endblock %}
+
+{% block head %}
+<style>
+.hero{background:linear-gradient(135deg,#0f172a,#1e1b4b);border:1px solid #312e81;
+  border-radius:16px;padding:40px;text-align:center;margin-bottom:22px}
+.hero h2{font-size:28px;font-weight:800;color:#fff;margin-bottom:10px}
+.hero p{color:#94a3b8;font-size:15px;max-width:600px;margin:0 auto 24px;line-height:1.7}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.hero-btn{padding:12px 28px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;
+  text-decoration:none;border:none;transition:all .15s}
+.hero-btn-main{background:#2563eb;color:#fff}.hero-btn-main:hover{background:#1d4ed8}
+.hero-btn-sec{background:#1e2d45;color:#93c5fd;border:1px solid #1e3a5f}
+.hero-btn-sec:hover{background:#1e3a5f}
+.threat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
+.tcard{background:#0d1220;border:1px solid #1e2d45;border-radius:14px;padding:20px;
+  cursor:pointer;transition:all .2s;text-decoration:none;display:block}
+.tcard:hover{transform:translateY(-3px);border-color:#3b82f6;box-shadow:0 8px 24px #3b82f630}
+.tcard-icon{font-size:30px;margin-bottom:10px}
+.tcard-name{font-size:15px;font-weight:700;color:#fff;margin-bottom:6px}
+.tcard-desc{font-size:12px;color:#64748b;line-height:1.6}
+.tcard-badge{display:inline-block;margin-top:10px;padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700}
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
+.feat{background:#0d1220;border:1px solid #1e2d45;border-radius:14px;padding:18px}
+.feat-ico{font-size:24px;margin-bottom:10px}
+.feat-title{font-size:14px;font-weight:700;color:#fff;margin-bottom:6px}
+.feat-desc{font-size:12px;color:#64748b;line-height:1.6}
+.live-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<div class="hero">
+  <div style="font-size:48px;margin-bottom:14px">🛡️</div>
+  <h2>AI-Powered Cloud Security Detection</h2>
+  <p>Real-time threat detection using Machine Learning algorithms — Isolation Forest, Random Forest, and K-Means Clustering — monitoring your cloud infrastructure 24/7.</p>
+  <div class="hero-btns">
+    <a href="/dashboard" class="hero-btn hero-btn-main">📊 Open Live Dashboard</a>
+    <a href="/threats" class="hero-btn hero-btn-sec">⚠️ View Threat Types</a>
+    <a href="/scanner" class="hero-btn hero-btn-sec">🔬 Scan an Event</a>
+  </div>
+</div>
+
+<!-- LIVE STAT STRIP -->
+<div class="live-stats">
+  <div class="sc" style="border-color:#1e3a5f">
+    <div class="sc-ico" style="background:#1e3a5f33;color:#3b82f6">📡</div>
+    <div><div class="sc-lbl">Events Monitored</div><div class="sc-val" id="hTotal" style="color:#3b82f6">0</div></div>
+  </div>
+  <div class="sc" style="border-color:#7f1d1d">
+    <div class="sc-ico" style="background:#7f1d1d33;color:#ef4444">🚨</div>
+    <div><div class="sc-lbl">Threats Found</div><div class="sc-val" id="hAttacks" style="color:#ef4444">0</div></div>
+  </div>
+  <div class="sc" style="border-color:#14532d">
+    <div class="sc-ico" style="background:#14532d33;color:#22c55e">✅</div>
+    <div><div class="sc-lbl">Safe Events</div><div class="sc-val" id="hNormal" style="color:#22c55e">0</div></div>
+  </div>
+  <div class="sc" style="border-color:#78350f">
+    <div class="sc-ico" style="background:#78350f33;color:#f59e0b">⚡</div>
+    <div><div class="sc-lbl">Threat Rate</div><div class="sc-val" id="hPct" style="color:#f59e0b">0%</div></div>
+  </div>
+</div>
+
+<!-- THREAT CARDS -->
+<div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:14px">⚠️ Threat Types We Detect</div>
+<div class="threat-grid">
+  {% for name, info in attack_info.items() %}
+  {% if name != 'Normal' %}
+  <a href="/threats" class="tcard">
+    <div class="tcard-icon">{{ info.icon }}</div>
+    <div class="tcard-name">{{ name }}</div>
+    <div class="tcard-desc">{{ info.desc }}</div>
+    <div class="tcard-badge" style="background:{{ info.color }}22;color:{{ info.color }};border:1px solid {{ info.color }}55">
+      {{ info.severity }} Risk · {{ info.risk }}%
+    </div>
+  </a>
+  {% endif %}
+  {% endfor %}
+</div>
+
+<!-- FEATURES -->
+<div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:14px">🤖 How It Works</div>
+<div class="features">
+  <div class="feat">
+    <div class="feat-ico">🌲</div>
+    <div class="feat-title">Isolation Forest</div>
+    <div class="feat-desc">Unsupervised ML that detects anomalies by isolating unusual data points. No labeled data needed.</div>
+  </div>
+  <div class="feat">
+    <div class="feat-ico">🧠</div>
+    <div class="feat-title">Random Forest</div>
+    <div class="feat-desc">100 decision trees vote to classify the exact attack type with high accuracy.</div>
+  </div>
+  <div class="feat">
+    <div class="feat-ico">🔵</div>
+    <div class="feat-title">K-Means Clustering</div>
+    <div class="feat-desc">Groups traffic into behavioral clusters. Traffic outside normal clusters gets flagged.</div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function update(){
+  const s=await fetch("/api/stats").then(r=>r.json());
+  document.getElementById("hTotal").textContent   = s.total.toLocaleString();
+  document.getElementById("hAttacks").textContent = s.attacks.toLocaleString();
+  document.getElementById("hNormal").textContent  = s.normal.toLocaleString();
+  document.getElementById("hPct").textContent     = s.pct+"%";
+}
+update(); setInterval(update,3000);
+</script>
+{% endblock %}

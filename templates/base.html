@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AI CyberShield </title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#080c16;color:#e2e8f0;font-family:'Segoe UI',sans-serif;display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:220px;background:#0d1220;border-right:1px solid #1e2d45;
+  display:flex;flex-direction:column;position:fixed;height:100vh;z-index:100}
+.brand{padding:20px 18px;border-bottom:1px solid #1e2d45}
+.brand h1{font-size:17px;font-weight:800;color:#fff;letter-spacing:.3px}
+.brand p{font-size:10px;color:#3b82f6;margin-top:3px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.nav{flex:1;padding:14px 10px;display:flex;flex-direction:column;gap:4px}
+.nav a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;
+  color:#64748b;text-decoration:none;font-size:13px;font-weight:500;transition:all .15s}
+.nav a:hover{background:#1e2d45;color:#e2e8f0}
+.nav a.active{background:linear-gradient(135deg,#1d4ed8,#1e40af);color:#fff;box-shadow:0 4px 12px #1d4ed840}
+.nav a span.ico{font-size:16px;width:20px;text-align:center}
+.sidebar-footer{padding:14px;border-top:1px solid #1e2d45;font-size:11px;color:#334155}
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;
+  background:#22c55e;box-shadow:0 0 6px #22c55e;animation:blink 2s infinite;margin-right:5px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* MAIN */
+.main{margin-left:220px;flex:1;padding:0}
+.topbar{display:flex;align-items:center;justify-content:space-between;
+  padding:14px 26px;background:#0d1220;border-bottom:1px solid #1e2d45;position:sticky;top:0;z-index:50}
+.topbar h2{font-size:17px;font-weight:700;color:#fff}
+.topbar p{font-size:12px;color:#64748b;margin-top:2px}
+.topbar-r{display:flex;align-items:center;gap:14px}
+.clk{font-size:13px;color:#94a3b8;font-variant-numeric:tabular-nums}
+.page{padding:22px 26px}
+
+/* CARDS */
+.card{background:#0d1220;border:1px solid #1e2d45;border-radius:14px;padding:18px 20px}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;font-weight:700;font-size:14px;color:#fff}
+.badge{font-size:10px;padding:3px 9px;border-radius:999px;font-weight:700}
+.badge-live{background:#14532d44;color:#22c55e;border:1px solid #14532d}
+.badge-red{background:#7f1d1d44;color:#fca5a5;border:1px solid #7f1d1d}
+.badge-blue{background:#1e3a5f44;color:#93c5fd;border:1px solid #1e3a5f}
+.badge-pur{background:#4a1d9644;color:#d8b4fe;border:1px solid #4a1d96}
+.badge-ora{background:#78350f44;color:#fdba74;border:1px solid #78350f}
+.badge-yel{background:#78350f44;color:#fde68a;border:1px solid #78350f}
+.badge-grn{background:#14532d44;color:#86efac;border:1px solid #14532d}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.sc{background:#0d1220;border:1px solid #1e2d45;border-radius:12px;padding:16px 18px;
+  display:flex;align-items:center;gap:14px}
+.sc-ico{width:44px;height:44px;border-radius:11px;display:flex;
+  align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.sc-lbl{font-size:11px;color:#64748b;margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.sc-val{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
+
+/* TABLE */
+.tbl-wrap{overflow-y:auto;max-height:360px;border-radius:10px;border:1px solid #1e2d45}
+table{width:100%;border-collapse:collapse}
+thead th{background:#111827;padding:10px 12px;text-align:left;font-size:10px;
+  color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  position:sticky;top:0;border-bottom:1px solid #1e2d45}
+tbody tr{border-bottom:1px solid #1e2d4533;transition:background .1s;cursor:pointer}
+tbody tr:hover{background:#1a2540}
+tbody td{padding:9px 12px;font-size:12px}
+
+/* CHIP */
+.chip{display:inline-block;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:700;white-space:nowrap}
+
+/* FORM */
+.fld label{display:block;font-size:10px;color:#64748b;font-weight:700;
+  margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.fld input,.fld select{width:100%;background:#111827;border:1px solid #1e2d45;
+  border-radius:8px;padding:9px 11px;color:#e2e8f0;font-size:13px}
+.fld input:focus,.fld select:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 2px #3b82f620}
+.btn{padding:10px 20px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .15s}
+.btn-primary{background:#2563eb;color:#fff}.btn-primary:hover{background:#1d4ed8}
+.btn-secondary{background:#1e2d45;color:#94a3b8;border:1px solid #1e2d45}
+.btn-secondary:hover{border-color:#3b82f6;color:#e2e8f0}
+</style>
+{% block head %}{% endblock %}
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="brand">
+    <h1>🛡️ CyberShield</h1>
+    <p>AI Security Platform</p>
+  </div>
+  <nav class="nav">
+    <a href="/" class="{% if request.path=='/' %}active{% endif %}">
+      <span class="ico">🏠</span> Home
+    </a>
+    <a href="/dashboard" class="{% if request.path=='/dashboard' %}active{% endif %}">
+      <span class="ico">📊</span> Live Dashboard
+    </a>
+    <a href="/threats" class="{% if request.path=='/threats' %}active{% endif %}">
+      <span class="ico">⚠️</span> Threat Explorer
+    </a>
+    <a href="/scanner" class="{% if request.path=='/scanner' %}active{% endif %}">
+      <span class="ico">🔬</span> Event Scanner
+    </a>
+    <a href="/alerts" class="{% if request.path=='/alerts' %}active{% endif %}">
+      <span class="ico">🔔</span> Alerts Log
+    </a>
+    <a href="/about" class="{% if request.path=='/about' %}active{% endif %}">
+      <span class="ico">🤖</span> About & Algos
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <span class="live-dot"></span> Live Monitoring Active<br/>
+    <span style="margin-top:4px;display:block;color:#1e2d45">AI CyberShield v1.0</span>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div>
+      <h2>{% block page_title %}{% endblock %}</h2>
+      <p>{% block page_sub %}{% endblock %}</p>
+    </div>
+    <div class="topbar-r">
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+        <span style="width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px #22c55e;display:inline-block"></span>
+        <span style="color:#22c55e;font-weight:600">Live</span>
+      </div>
+      <span class="clk" id="clk"></span>
+    </div>
+  </div>
+  <div class="page">
+    {% block content %}{% endblock %}
+  </div>
+</main>
+
+<script>
+setInterval(()=>{ document.getElementById("clk").textContent = new Date().toLocaleTimeString() },1000);
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

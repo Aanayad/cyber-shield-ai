@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Alerts{% endblock %}
+{% block page_title %}Alerts Log{% endblock %}
+{% block page_sub %}All detected threats — auto-refreshes every 3 seconds{% endblock %}
+
+{% block head %}
+<style>
+.alert-card{background:#0d1220;border-radius:12px;padding:16px 18px;
+  border-left:4px solid;margin-bottom:10px;display:flex;align-items:center;
+  justify-content:space-between;gap:16px;cursor:pointer;transition:background .15s;
+  border-top:1px solid #1e2d45;border-right:1px solid #1e2d45;border-bottom:1px solid #1e2d45}
+.alert-card:hover{background:#111827}
+.alert-left{display:flex;align-items:center;gap:14px}
+.alert-icon{font-size:28px;width:44px;text-align:center}
+.alert-title{font-size:14px;font-weight:700;color:#fff;margin-bottom:3px}
+.alert-sub{font-size:12px;color:#64748b}
+.alert-right{text-align:right;flex-shrink:0}
+.sev{font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px}
+.empty{text-align:center;padding:60px;color:#334155}
+.filter-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.fbtn{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;
+  border:1px solid #1e2d45;background:#0d1220;color:#64748b;transition:all .15s}
+.fbtn:hover,.fbtn.active{background:#1e2d45;color:#e2e8f0}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="filter-row" id="filterRow">
+  <button class="fbtn active" onclick="setFilter('all',this)">All Threats</button>
+  <button class="fbtn" onclick="setFilter('Brute Force',this)" style="color:#f97316">💥 Brute Force</button>
+  <button class="fbtn" onclick="setFilter('DDoS',this)" style="color:#ef4444">🌊 DDoS</button>
+  <button class="fbtn" onclick="setFilter('Data Exfiltration',this)" style="color:#a855f7">📤 Data Exfiltration</button>
+  <button class="fbtn" onclick="setFilter('Port Scan',this)" style="color:#3b82f6">🔍 Port Scan</button>
+  <button class="fbtn" onclick="setFilter('Insider Threat',this)" style="color:#f59e0b">🕵️ Insider Threat</button>
+</div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+  <span style="font-size:13px;color:#64748b">Showing <span id="cnt">0</span> alerts</span>
+  <span class="badge badge-live">AUTO-REFRESH</span>
+</div>
+
+<div id="alertsList"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const COLORS={"Brute Force":"#f97316","DDoS":"#ef4444","Data Exfiltration":"#a855f7","Port Scan":"#3b82f6","Insider Threat":"#f59e0b"};
+const SEV_COL={"Critical":"#ef4444","High":"#f97316","Medium":"#3b82f6","Low":"#22c55e"};
+let allAlerts=[], currentFilter="all";
+
+function setFilter(f, el){
+  currentFilter=f;
+  document.querySelectorAll(".fbtn").forEach(b=>b.classList.remove("active"));
+  el.classList.add("active");
+  render();
+}
+
+function render(){
+  const show=currentFilter==="all"?allAlerts:allAlerts.filter(a=>a.verdict===currentFilter);
+  document.getElementById("cnt").textContent=show.length;
+  if(show.length===0){
+    document.getElementById("alertsList").innerHTML=`<div class="empty"><div style="font-size:40px;margin-bottom:12px">🎉</div><div style="color:#64748b;font-size:15px">No ${currentFilter==="all"?"":currentFilter+" "}alerts yet</div></div>`;
+    return;
+  }
+  document.getElementById("alertsList").innerHTML=show.slice(0,60).map(a=>`
+    <div class="alert-card" style="border-left-color:${COLORS[a.verdict]||'#64748b'}">
+      <div class="alert-left">
+        <div class="alert-icon">${a.icon}</div>
+        <div>
+          <div class="alert-title">${a.verdict}</div>
+          <div class="alert-sub">From ${a.src_ip} → ${a.dst_ip} · ${a.date} at ${a.time}</div>
+          <div class="alert-sub" style="margin-top:3px">Bytes: ${a.bytes_sent.toLocaleString()} · Req/min: ${a.requests_per_min} · CPU: ${a.cpu_usage}% · Confidence: ${a.confidence}%</div>
+        </div>
+      </div>
+      <div class="alert-right">
+        <span class="sev" style="background:${SEV_COL[a.severity]||'#64748b'}22;color:${SEV_COL[a.severity]||'#64748b'};border:1px solid ${SEV_COL[a.severity]||'#64748b'}44">${a.severity}</span>
+        <div style="font-size:11px;color:#334155;margin-top:6px">IF: ${a.iso} · RF: ${a.rf.split(" ")[0]}</div>
+      </div>
+    </div>`).join("");
+}
+
+async function refresh(){
+  allAlerts=await fetch("/api/alerts").then(r=>r.json());
+  render();
+}
+refresh(); setInterval(refresh,3000);
+</script>
+{% endblock %}
